@@ -6,7 +6,7 @@
 /*   By: sqiu <marvin@42.fr>                        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/10/28 07:47:15 by sqiu              #+#    #+#             */
-/*   Updated: 2022/10/28 08:33:30 by sqiu             ###   ########.fr       */
+/*   Updated: 2022/11/01 16:18:41 by sqiu             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,7 @@ char	*ft_strjoin(char const *s1, char const *s2)
 	size_t	len2;
 	char	*str;
 
-	if (!s1 || !s2)
+	if (!s1 && !s2)
 		return (NULL);
 	len1 = ft_strlen(s1);
 	len2 = ft_strlen(s2);
@@ -35,6 +35,8 @@ size_t	ft_strlen(const char *s)
 {
 	size_t	i;
 
+	if (!s)
+		return (0);
 	i = 0;
 	while (s[i])
 		i++;
@@ -57,6 +59,8 @@ int	ft_strchr(const char *s, int c)
 {
 	int	i;
 
+	if (!s)
+		return (0);
 	i = 0;
 	while (s[i])
 	{
@@ -67,4 +71,24 @@ int	ft_strchr(const char *s, int c)
 	if (c == 0)
 		return (i);
 	return (0);
+}
+
+char	*ft_strdup(const char *src)
+{
+	char	*dupl;
+	int		k;
+
+	if (!src)
+		return (NULL);
+	k = 0;
+	dupl = (char *)malloc((ft_strlen(src) + 1) * sizeof(char));
+	if (dupl == NULL)
+		return (NULL);
+	while (src[k])
+	{
+		dupl[k] = src[k];
+		k++;
+	}
+	dupl[k] = '\0';
+	return (dupl);
 }
