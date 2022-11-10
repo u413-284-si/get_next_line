@@ -6,7 +6,7 @@
 /*   By: sqiu <marvin@42.fr>                        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/10/27 11:34:22 by sqiu              #+#    #+#             */
-/*   Updated: 2022/11/10 17:14:35 by sqiu             ###   ########.fr       */
+/*   Updated: 2022/11/09 15:15:17 by sqiu             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,7 +28,7 @@ Read line: correct behavior
 NULL: there is nothing else to read, or an error
 occurred
 Returned line includes the terminating \n character,
-except if the end of file was reached and does not end with a \n character.
+except if the end_index of file was reached and does not end_index with a \n character.
 */
 
 /*
@@ -90,16 +90,35 @@ void	*ft_memcpy(void *dest, const void *src, size_t n)
 		*str++ = *((unsigned char *) src++);
 	return (dest);
 }
-*/
+
+char	*ft_strdup(const char *src)
+{
+	char	*dupl;
+	int		k;
+
+	if (!src)
+		return (NULL);
+	k = 0;
+	dupl = (char *)malloc((ft_strlen(src) + 1) * sizeof(char));
+	if (dupl == NULL)
+		return (NULL);
+	while (src[k])
+	{
+		dupl[k] = src[k];
+		k++;
+	}
+	dupl[k] = '\0';
+	return (dupl);
+} */
 
 /*
 ***************************************************************************************************************************************
 */
 
-static char	*get_line(int fd, char *ret, char *buf);
-static char	*monster_free(char *uno, char *due);
-static char	*cut_str(char *s);
-static char	*retain(char *s);
+static char	*get_line(int fd);
+static int	parse_str(char *s);
+static char	*cut_str(char *s, int end_index);
+static char	*retain(char *s, int nl_pos);
 
 char	*get_next_line(int fd)
 {
@@ -107,65 +126,47 @@ char	*get_next_line(int fd)
 	char		*buf;
 	char		*rtrn;
 	char		*tmp;
+	int			nl_pos;
 
-	if (read(fd, ret, 0) < 0 || BUFFER_SIZE <= 0)
-		return (ret = NULL);
-	buf = malloc (sizeof(char) * BUFFER_SIZE);
-	if (!buf)
+	if (fd < 0 || BUFFER_SIZE <= 0)
 		return (NULL);
-	tmp = get_line(fd, ret, buf);
-	if (!tmp)
-		return (ret = NULL);
-	rtrn = cut_str(tmp);
-	if (!rtrn)
-		return (NULL);
-	ret = retain(tmp);
-	free(tmp);
-	return (rtrn);
-}
-
-static char	*get_line(int fd, char *ret, char *buf)
-{
-	char	*tmp;
-	int		sz;
-	int		len;
-
-	len = ft_strlen(ret);
-	sz = read(fd, buf, BUFFER_SIZE);
-	buf[sz] = '\0';
-	while (!ft_strchr(ret, '\n') && sz > 0)
+	nl_pos = 0;
+	buf = "";
+	while (nl_pos == 0)
 	{
-		if (sz == 0 && !*ret) //never reached
-			monster_free(buf, ret);
-		tmp = malloc (sizeof(char) * len);
-		ft_memcpy(tmp, ret, len);
+		buf = get_line(fd);
+		tmp = ft_strdup(ret);
 		if (*ret != '\0')
 			free(ret);
 		ret = ft_strjoin(tmp, buf);
-		if (!ret)
-			return (monster_free(tmp, buf));
-		monster_free(tmp, buf);
-		buf = malloc (sizeof(char) * BUFFER_SIZE);
-		if (!buf)
-			return (NULL);
-		sz = read(fd, buf, BUFFER_SIZE);
-		buf[sz] = '\0';
+		free(tmp);
+		nl_pos = parse_str(ret);
+		if (buf != NULL)
+		{
+			rtrn = cut_str(ret, nl_pos);
+			ret = retain(ret, nl_pos);
+			free(buf);
+		}
+		else
+			break ;
 	}
-	free(buf);
-	return (ret);
+	return (rtrn);
 }
 
-static char	*retain(char *s)
+static char	*retain(char *s, int nl_pos)
 {
 	char	*newstr;
 	int		j;
 	int		len;
-	char	*end;
 
-	end = ft_strchr(s, '\n');
+	if (!s || (nl_pos == 0 && *s == '\0'))
+	{
+		free (s);
+		return (NULL);
+	}
 	len = -1;
 	j = 0;
-	while (end[j++])
+	while (s[nl_pos + j++])
 		len++;
 	newstr = (char *) malloc (sizeof(char) * (len + 1));
 	if (!newstr)
@@ -173,7 +174,7 @@ static char	*retain(char *s)
 	j = 0;
 	while (j < len)
 	{
-		newstr[j] = end[j + 1];
+		newstr[j] = s[nl_pos + 1 + j];
 		j++;
 	}
 	newstr[len] = '\0';
@@ -181,37 +182,63 @@ static char	*retain(char *s)
 	return (newstr);
 }
 
+static char	*get_line(int fd)
+{
+	char	*append;
+	int		sz;
+
+	append = (char *) malloc (sizeof(char) * (BUFFER_SIZE + 1));
+	if (!append)
+		return (NULL);
+	sz = read(fd, append, BUFFER_SIZE);
+	if (sz <= 0)
+	{
+		free(append);
+		return (NULL);
+	}
+	append[BUFFER_SIZE] = '\0';
+	return (append);
+}
+
 /*
 End_index: position of \n
-Size of new string: end position + 1 (starting at 0) + 1 (for \0)
-For last loop to run (end = 0), condition must be + 1
+Size of new string: end_index position + 1 (starting at 0) + 1 (for \0)
+For last loop to run (end_index = 0), condition must be + 1
 */
-static char	*cut_str(char *s)
+static char	*cut_str(char *s, int end_index)
 {
 	char	*newstr;
 	int		s_len;
-	char	*end;
 
-	end = ft_strchr(s, '\n');
-	if (!end)
-		s_len = ft_strlen(s) + 1;
+	if (!s || (end_index == 0 && *s == '\0'))
+		return (NULL);
+	s_len = ft_strlen(s);
+	if (end_index == 0 && *s != '\0')
+	{
+		newstr = (char *) malloc (sizeof(char) * (s_len + 1));
+		end_index = s_len - 1;
+	}
 	else
-		s_len = end - s + 2;
-	newstr = malloc (sizeof(char) * s_len);
+		newstr = (char *) malloc (sizeof(char) * (end_index + 2));
 	if (!newstr)
 		return (NULL);
-	newstr[s_len + 1] = '\0';
-	ft_memcpy(newstr, s, s_len);
+	newstr[end_index + 1] = '\0';
+	while (end_index + 1)
+	{
+		newstr[end_index] = s[end_index];
+		end_index--;
+	}
 	return (newstr);
 }
 
-static char	*monster_free(char *uno, char *due)
+static int	parse_str(char *s)
 {
-	if (uno)
-		free(uno);
-	if (due)
-		free (due);
-	return (NULL);
+	int	nl_pos;
+
+	if (!s)
+		return (0);
+	nl_pos = ft_strchr(s, '\n');
+	return (nl_pos);
 }
 
 /* int	main(void)

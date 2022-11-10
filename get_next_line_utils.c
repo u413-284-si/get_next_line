@@ -6,7 +6,7 @@
 /*   By: sqiu <marvin@42.fr>                        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/10/28 07:47:15 by sqiu              #+#    #+#             */
-/*   Updated: 2022/11/01 16:18:41 by sqiu             ###   ########.fr       */
+/*   Updated: 2022/11/10 17:14:38 by sqiu             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,40 +55,18 @@ void	*ft_memcpy(void *dest, const void *src, size_t n)
 	return (dest);
 }
 
-int	ft_strchr(const char *s, int c)
+char	*ft_strchr(const char *s, int c)
 {
 	int	i;
 
-	if (!s)
-		return (0);
 	i = 0;
 	while (s[i])
 	{
 		if (s[i] == (char)c)
-			return (i);
+			return ((void *)&s[i]);
 		i++;
 	}
 	if (c == 0)
-		return (i);
-	return (0);
-}
-
-char	*ft_strdup(const char *src)
-{
-	char	*dupl;
-	int		k;
-
-	if (!src)
-		return (NULL);
-	k = 0;
-	dupl = (char *)malloc((ft_strlen(src) + 1) * sizeof(char));
-	if (dupl == NULL)
-		return (NULL);
-	while (src[k])
-	{
-		dupl[k] = src[k];
-		k++;
-	}
-	dupl[k] = '\0';
-	return (dupl);
+		return ((void *)&s[i]);
+	return (NULL);
 }
