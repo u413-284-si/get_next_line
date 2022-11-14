@@ -6,7 +6,7 @@
 /*   By: sqiu <marvin@42.fr>                        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/10/27 11:34:22 by sqiu              #+#    #+#             */
-/*   Updated: 2022/11/10 17:14:35 by sqiu             ###   ########.fr       */
+/*   Updated: 2022/11/14 17:27:37 by sqiu             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,7 +34,8 @@ except if the end of file was reached and does not end with a \n character.
 /*
 ***************************************Uncomment for testing*******************************
 */
-/* int	ft_strchr(const char *s, int c)
+
+/* char	*ft_strchr(const char *s, int c)
 {
 	int	i;
 
@@ -42,12 +43,12 @@ except if the end of file was reached and does not end with a \n character.
 	while (s[i])
 	{
 		if (s[i] == (char)c)
-			return (i);
+			return ((void *)&s[i]);
 		i++;
 	}
 	if (c == 0)
-		return (i);
-	return (0);
+		return ((void *)&s[i]);
+	return (NULL);
 }
 
 char	*ft_strjoin(char const *s1, char const *s2)
@@ -73,6 +74,8 @@ size_t	ft_strlen(const char *s)
 {
 	size_t	i;
 
+	if (!s)
+		return (0);
 	i = 0;
 	while (s[i])
 		i++;
@@ -89,8 +92,8 @@ void	*ft_memcpy(void *dest, const void *src, size_t n)
 	while (n--)
 		*str++ = *((unsigned char *) src++);
 	return (dest);
-}
-*/
+} */
+
 
 /*
 ***************************************************************************************************************************************
@@ -107,10 +110,14 @@ char	*get_next_line(int fd)
 	char		*buf;
 	char		*rtrn;
 	char		*tmp;
+	char		*str;
 
-	if (read(fd, ret, 0) < 0 || BUFFER_SIZE <= 0)
+	if (!ret)
+		return (NULL);
+	str = "";
+	if (read(fd, str, 0) < 0 || BUFFER_SIZE <= 0)
 		return (ret = NULL);
-	buf = malloc (sizeof(char) * BUFFER_SIZE);
+	buf = malloc (sizeof(char) * (BUFFER_SIZE + 1));
 	if (!buf)
 		return (NULL);
 	tmp = get_line(fd, ret, buf);
@@ -130,14 +137,18 @@ static char	*get_line(int fd, char *ret, char *buf)
 	int		sz;
 	int		len;
 
-	len = ft_strlen(ret);
 	sz = read(fd, buf, BUFFER_SIZE);
 	buf[sz] = '\0';
+	if (sz == 0 && !*ret)
+	{
+		free(buf);
+		return (NULL);
+	}
 	while (!ft_strchr(ret, '\n') && sz > 0)
 	{
-		if (sz == 0 && !*ret) //never reached
-			monster_free(buf, ret);
-		tmp = malloc (sizeof(char) * len);
+		len = ft_strlen(ret);
+		tmp = malloc (sizeof(char) * (len + 1));
+		tmp[len] = '\0';
 		ft_memcpy(tmp, ret, len);
 		if (*ret != '\0')
 			free(ret);
@@ -145,7 +156,7 @@ static char	*get_line(int fd, char *ret, char *buf)
 		if (!ret)
 			return (monster_free(tmp, buf));
 		monster_free(tmp, buf);
-		buf = malloc (sizeof(char) * BUFFER_SIZE);
+		buf = malloc (sizeof(char) * (BUFFER_SIZE + 1));
 		if (!buf)
 			return (NULL);
 		sz = read(fd, buf, BUFFER_SIZE);
@@ -155,6 +166,11 @@ static char	*get_line(int fd, char *ret, char *buf)
 	return (ret);
 }
 
+/* 
+Check if \n is found or if nothing is found after the \n.
+In that case nothing is to be retained, NULL is returned
+which results in gnl returning NULL.
+*/
 static char	*retain(char *s)
 {
 	char	*newstr;
@@ -163,6 +179,8 @@ static char	*retain(char *s)
 	char	*end;
 
 	end = ft_strchr(s, '\n');
+	if (!end || !*(end + 1))
+		return (NULL);
 	len = -1;
 	j = 0;
 	while (end[j++])
@@ -177,7 +195,6 @@ static char	*retain(char *s)
 		j++;
 	}
 	newstr[len] = '\0';
-	free(s);
 	return (newstr);
 }
 
@@ -200,8 +217,8 @@ static char	*cut_str(char *s)
 	newstr = malloc (sizeof(char) * s_len);
 	if (!newstr)
 		return (NULL);
-	newstr[s_len + 1] = '\0';
-	ft_memcpy(newstr, s, s_len);
+	newstr[s_len - 1] = '\0';
+	ft_memcpy(newstr, s, s_len - 1);
 	return (newstr);
 }
 
@@ -222,7 +239,7 @@ static char	*monster_free(char *uno, char *due)
 	//char	*file_empty;
 	int		i;
 
-	file = "41_no_nl";
+	file = "41_with_nl";
 	//file_empty = "empty.txt";
 	fd = open(file, O_RDONLY);
 	//fd = open(file_empty, O_RDONLY);
