@@ -6,7 +6,7 @@
 /*   By: sqiu <marvin@42.fr>                        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/10/27 11:34:22 by sqiu              #+#    #+#             */
-/*   Updated: 2022/11/14 17:27:37 by sqiu             ###   ########.fr       */
+/*   Updated: 2022/11/15 14:35:19 by sqiu             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -162,6 +162,7 @@ static char	*get_line(int fd, char *ret, char *buf)
 		sz = read(fd, buf, BUFFER_SIZE);
 		buf[sz] = '\0';
 	}
+	ret = ft_strjoin(ret, buf);
 	free(buf);
 	return (ret);
 }
@@ -181,8 +182,8 @@ static char	*retain(char *s)
 	end = ft_strchr(s, '\n');
 	if (!end || !*(end + 1))
 		return (NULL);
-	len = -1;
-	j = 0;
+	len = 0;
+	j = 1;
 	while (end[j++])
 		len++;
 	newstr = (char *) malloc (sizeof(char) * (len + 1));
@@ -201,7 +202,6 @@ static char	*retain(char *s)
 /*
 End_index: position of \n
 Size of new string: end position + 1 (starting at 0) + 1 (for \0)
-For last loop to run (end = 0), condition must be + 1
 */
 static char	*cut_str(char *s)
 {
@@ -211,14 +211,14 @@ static char	*cut_str(char *s)
 
 	end = ft_strchr(s, '\n');
 	if (!end)
-		s_len = ft_strlen(s) + 1;
+		s_len = ft_strlen(s);
 	else
-		s_len = end - s + 2;
-	newstr = malloc (sizeof(char) * s_len);
+		s_len = end - s + 1;
+	newstr = malloc (sizeof(char) * (s_len + 1));
 	if (!newstr)
 		return (NULL);
-	newstr[s_len - 1] = '\0';
-	ft_memcpy(newstr, s, s_len - 1);
+	newstr[s_len] = '\0';
+	ft_memcpy(newstr, s, s_len);
 	return (newstr);
 }
 
@@ -231,7 +231,7 @@ static char	*monster_free(char *uno, char *due)
 	return (NULL);
 }
 
-/* int	main(void)
+int	main(void)
 {
 	int		fd;
 	char	*line;
@@ -239,7 +239,7 @@ static char	*monster_free(char *uno, char *due)
 	//char	*file_empty;
 	int		i;
 
-	file = "41_with_nl";
+	file = "test.txt"; //41_with_nl
 	//file_empty = "empty.txt";
 	fd = open(file, O_RDONLY);
 	//fd = open(file_empty, O_RDONLY);
@@ -252,4 +252,4 @@ static char	*monster_free(char *uno, char *due)
 		i++;
 	}
 	return (0);
-} */
+}
