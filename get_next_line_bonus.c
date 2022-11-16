@@ -1,16 +1,16 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   get_next_line.c                                    :+:      :+:    :+:   */
+/*   get_next_line_bonus.c                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: sqiu <marvin@42.fr>                        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/10/27 11:34:22 by sqiu              #+#    #+#             */
-/*   Updated: 2022/11/16 11:38:59 by sqiu             ###   ########.fr       */
+/*   Updated: 2022/11/16 11:38:57 by sqiu             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "get_next_line.h"
+#include "get_next_line_bonus.h"
 #include <stdio.h>
 
 /*
@@ -98,61 +98,61 @@ void	*ft_memcpy(void *dest, const void *src, size_t n)
 ***************************************************************************
 */
 
-char	*init(char *ret);
-char	*get_liny(int fd, char *ret);
-char	*cut_str(char *s);
-char	*retain(char *s);
+char	*init_mult(char *ret);
+char	*get_line_mult(int fd, char **ret);
+char	*cut_str_mult(char *s);
+char	*retain_mult(char *s);
 
 char	*get_next_line(int fd)
 {
-	static char	*ret;
+	static char	*ret[4096];
 	char		*rtrn;
 	char		*tmp;
 
 	if (read(fd, 0, 0) < 0 || BUFFER_SIZE <= 0 || fd < 0)
 	{
-		if (ret)
-			free (ret);
-		return (ret = NULL);
+		if (ret[fd])
+			free (ret[fd]);
+		return (ret[fd] = NULL);
 	}
-	tmp = get_liny(fd, ret);
+	tmp = get_line_mult(fd, ret);
 	if (!tmp)
-		return (ret = NULL);
-	rtrn = cut_str(tmp);
+		return (ret[fd] = NULL);
+	rtrn = cut_str_mult(tmp);
 	if (!rtrn)
 		return (NULL);
-	ret = retain(tmp);
+	ret[fd] = retain_mult(tmp);
 	free(tmp);
 	return (rtrn);
 }
 
-char	*get_liny(int fd, char *ret)
+char	*get_line_mult(int fd, char **ret)
 {
 	char	*tmp;
 	int		sz;
 	char	*buf;
 
-	ret = init(ret);
+	ret[fd] = init_mult(ret[fd]);
 	sz = 1;
-	while (!ft_strchr(ret, '\n') && sz > 0)
+	while (!ft_strchr(ret[fd], '\n') && sz > 0)
 	{
 		buf = malloc (sizeof(char) * (BUFFER_SIZE + 1));
 		if (!buf)
 			return (NULL);
 		sz = read(fd, buf, BUFFER_SIZE);
 		buf[sz] = '\0';
-		if (sz == 0 && !*ret)
+		if (sz == 0 && !*ret[fd])
 		{
-			monster_free(buf, ret);
+			monster_free(buf, ret[fd]);
 			return (NULL);
 		}
-		tmp = ret;
-		ret = ft_strjoin(tmp, buf);
-		if (!ret)
+		tmp = ret[fd];
+		ret[fd] = ft_strjoin(tmp, buf);
+		if (!ret[fd])
 			return (monster_free(tmp, buf));
 		monster_free(tmp, buf);
 	}
-	return (ret);
+	return (ret[fd]);
 }
 
 /* 
@@ -160,7 +160,7 @@ Check if \n is found or if nothing is found after the \n.
 In that case nothing is to be retained, NULL is returned
 which results in gnl returning NULL.
 */
-char	*retain(char *s)
+char	*retain_mult(char *s)
 {
 	char	*newstr;
 	int		j;
@@ -191,7 +191,7 @@ char	*retain(char *s)
 End_index: position of \n
 Size of new string: end position + 1 (starting at 0) + 1 (for \0)
 */
-char	*cut_str(char *s)
+char	*cut_str_mult(char *s)
 {
 	char	*newstr;
 	int		s_len;
@@ -210,7 +210,7 @@ char	*cut_str(char *s)
 	return (newstr);
 }
 
-char	*init(char *ret)
+char	*init_mult(char *ret)
 {
 	if (!ret)
 	{
@@ -230,7 +230,7 @@ char	*init(char *ret)
 	//char	*file_empty;
 	int		i;
 
-	file = "42_with_nl"; //42_with_nl
+	file = "nl"; //42_with_nl
 	//file_empty = "empty.txt";
 	fd = open(file, O_RDONLY);
 	//fd = open(file_empty, O_RDONLY);

@@ -1,0 +1,165 @@
+static char	*get_line(int fd, char *ret);
+static char	*monster_free(char *uno, char *due);
+static char	*cut_str(char *s);
+static char	*retain(char *s);
+
+char	*get_next_line(int fd)
+{
+	static char	*ret = "";
+	char		*rtrn;
+	char		*tmp;
+
+	if (read(fd, 0, 0) < 0 || BUFFER_SIZE <= 0 || fd < 0)
+		return (ret = NULL);
+	if (!ret)
+		return (NULL);
+	tmp = get_line(fd, ret);
+	if (!tmp)
+		return (ret = NULL);
+	rtrn = cut_str(tmp);
+	if (!rtrn)
+		return (NULL);
+	ret = retain(tmp);
+	free(tmp);
+	return (rtrn);
+}
+
+static char	*get_line(int fd, char *ret)
+{
+	char	*tmp;
+	int		sz;
+	//int		len;
+	char	*buf;
+
+	if (!*ret)
+	{
+		if ()
+		ret = malloc (1);
+		if (!ret)
+			return (NULL);
+		ret[0] = '\0';
+	}	
+	sz = 1;
+	while (!ft_strchr(ret, '\n') && sz > 0)
+	{
+		// len = ft_strlen(ret);
+		// tmp = malloc (sizeof(char) * (len + 1));
+		// tmp[len] = '\0';
+		// ft_memcpy(tmp, ret, len);
+		// if (*ret != '\0')
+		// 	free(ret);
+		buf = malloc (sizeof(char) * (BUFFER_SIZE + 1));
+		if (!buf)
+			return (NULL);
+		sz = read(fd, buf, BUFFER_SIZE);
+		buf[sz] = '\0';
+		if (sz == 0 && !*ret)
+		{
+			monster_free(buf, ret);
+			return (NULL);
+		}
+		tmp = ret;
+		ret = ft_strjoin(tmp, buf);
+		if (!ret)
+			return (monster_free(tmp, buf));
+		monster_free(tmp, buf);
+	}
+	// len = ft_strlen(ret);
+	// tmp = malloc (sizeof(char) * (len + 1));
+	// tmp[len] = '\0';
+	// ft_memcpy(tmp, ret, len);
+	// if (*ret != '\0')
+	// 	free(ret);
+	// ret = ft_strjoin(tmp, buf);
+	// if (!ret)
+	// 	return (monster_free(tmp, buf));
+	// monster_free(tmp, buf);
+	return (ret);
+}
+
+/* 
+Check if \n is found or if nothing is found after the \n.
+In that case nothing is to be retained, NULL is returned
+which results in gnl returning NULL.
+*/
+static char	*retain(char *s)
+{
+	char	*newstr;
+	int		j;
+	int		len;
+	char	*end;
+
+	end = ft_strchr(s, '\n');
+	if (!end || !*(end))
+		return (NULL);
+	len = 0;
+	j = 1;
+	while (end[j++])
+		len++;
+	newstr = (char *) malloc (sizeof(char) * (len + 1));
+	if (!newstr)
+		return (NULL);
+	j = 0;
+	while (j < len)
+	{
+		newstr[j] = end[j + 1];
+		j++;
+	}
+	newstr[len] = '\0';
+	return (newstr);
+}
+
+/*
+End_index: position of \n
+Size of new string: end position + 1 (starting at 0) + 1 (for \0)
+*/
+static char	*cut_str(char *s)
+{
+	char	*newstr;
+	int		s_len;
+	char	*end;
+
+	end = ft_strchr(s, '\n');
+	if (!end)
+		s_len = ft_strlen(s);
+	else
+		s_len = end - s + 1;
+	newstr = malloc (sizeof(char) * (s_len + 1));
+	if (!newstr)
+		return (NULL);
+	newstr[s_len] = '\0';
+	ft_memcpy(newstr, s, s_len);
+	return (newstr);
+}
+
+static char	*monster_free(char *uno, char *due)
+{
+	if (uno)
+		free(uno);
+	if (due)
+		free (due);
+	return (NULL);
+}
+
+int	main(void)
+{
+	int		fd;
+	char	*line;
+	char	*file;
+	//char	*file_empty;
+	int		i;
+
+	file = "nl"; //42_with_nl
+	//file_empty = "empty.txt";
+	fd = open(file, O_RDONLY);
+	//fd = open(file_empty, O_RDONLY);
+	i = 0;
+	while (i < 3)
+	{
+		line = get_next_line(fd);
+		printf("%s", line);
+		free(line);
+		i++;
+	}
+	return (0);
+}

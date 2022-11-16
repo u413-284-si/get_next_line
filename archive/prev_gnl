@@ -1,0 +1,53 @@
+char	*get_next_line(int fd)
+{
+	static char	*ret;
+	char		*buf;
+	char		*rtrn;
+	char		*tmp;
+	int			nl_pos;
+
+	if (fd < 0 || BUFFER_SIZE <= 0)
+		return (NULL);
+	nl_pos = 0;
+	buf = "";
+	while (nl_pos == 0 && buf != NULL)
+	{
+		buf = get_line(buf, fd);
+		nl_pos = parse_str(buf);
+		if (nl_pos == 0 && ft_strlen(buf) == 1)
+			break ;
+	}
+	tmp = ft_strdup(ret);
+	free(ret);
+	ret = ft_strjoin(tmp, buf);
+	free(tmp);
+	free(buf);
+	rtrn = cut_str(ret, parse_str(ret));
+	ret = retain(ret, parse_str(ret));
+	return (rtrn);
+}
+
+static char	*get_line(char *s, int fd)
+{
+	char	*append;
+	char	*rtrn;
+	int		sz;
+
+	append = (char *) malloc (sizeof(char) * (BUFFER_SIZE + 1));
+	if (!append)
+		return (NULL);
+	sz = read(fd, append, BUFFER_SIZE);
+	if (sz <= 0)
+	{
+		free(append);
+		if (*s != '\0' && *s != '\n')
+			free(s);
+		return (NULL);
+	}
+	append[BUFFER_SIZE] = '\0';
+	rtrn = ft_strjoin(s, append);
+	if (*s != '\0')
+		free(s);
+	free(append);
+	return (rtrn);
+}
